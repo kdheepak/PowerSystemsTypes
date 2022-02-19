@@ -52,41 +52,50 @@
   $: labels = get_labels(root.descendants(), w, h)
   $: console.log(labels)
 
-  const circleMouseOver = function () {
-    d3.select(this).attr('r', 10)
-  }
-  const circleMouseOut = function () {
-    d3.select(this).attr('r', 7.5)
-  }
-  const circleClick = function (d) {
-    console.log(d.data.name)
+  const tooltip = d3
+    .select('#tooltip')
+    .style('opacity', 0)
+    .attr('class', 'tooltip')
+    .style('background-color', 'white')
+    .style('border', 'solid')
+    .style('border-width', '2px')
+    .style('border-radius', '5px')
+    .style('padding', '5px')
+
+  const diagonal = d3
+    .linkHorizontal()
+    .source((d) => [d.source.y, d.source.x])
+    .target((d) => [d.target.y, d.target.x])
+
+  function circleMouseMove(node) {
+    console.log(node)
   }
 </script>
 
+<g class="links">
+  {#each root.links() as d}
+    <path d={diagonal(d)} fill="none" stroke="black" stroke-opacity="0.25" />
+  {/each}
+</g>
 <g class="nodes">
   {#each root.descendants() as node}
     <circle
       class="node"
-      transform="translate({node.y}, {node.x})"
+      cx={node.y}
+      cy={node.x}
       r="7.5"
-      on:mouseover={circleMouseOver}
-      on:mousemove={circleMouseOver}
+      fill={node.children ? 'lightpink' : 'blue'}
+      on:mouseover={function () {
+        tooltip.style('opacity', 1)
+        d3.select(this).attr('r', 10)
+      }}
+      on:mouseout={function () {
+        tooltip.style('opacity', 0)
+        d3.select(this).attr('r', 7.5)
+      }}
       on:focus={() => {}}
-      on:mouseout={circleMouseOut}
       on:blur={() => {}}
-      on:click={() => circleClick(node)}
-    />
-  {/each}
-</g>
-<g class="links">
-  {#each root.links() as link}
-    <line
-      x1={link.source.y}
-      y1={link.source.x}
-      x2={link.target.y}
-      y2={link.target.x}
-      stroke="black"
-      stroke-opacity="0.25"
+      on:click={() => console.log(node)}
     />
   {/each}
 </g>
